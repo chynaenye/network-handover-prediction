@@ -4,4 +4,6 @@ numpy
 jupyter
 ipykernel
 matplotlib
+imbalanced-learn
 kagglehub
+xgboost
