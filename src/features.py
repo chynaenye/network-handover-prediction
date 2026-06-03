@@ -1,3 +1,4 @@
+
 def feature_engineering(df):
     # Create new features based on existing ones
     df['RSRP_diff'] = df['RSRP'] - df['RSRP'].shift(1)

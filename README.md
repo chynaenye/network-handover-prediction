@@ -17,9 +17,20 @@ This project builds and evaluates several classification models to predict hando
 ## 📁 Project Structure
 
 ```
-├── notebook.ipynb         # Main analysis notebook
-├── README.md
- ```
+network-handover-prediction/
+├── data/
+│   └── data_loader.py          # Downloads dataset and loads CSV into a DataFrame
+├── notebooks/
+│   └── exploration.ipynb       # Exploratory data analysis and model experimentation
+├── src/
+│   ├── data_preprocess.py      # Unit stripping, type conversion, missing value handling, range validation
+│   ├── features.py             # Feature engineering and target variable creation
+│   ├── train.py                # Train/test split, scaling, SMOTE, model training
+│   ├── evaluate.py             # Model evaluation — confusion matrix and classification report
+│   └── predict.py              # Prediction on new unseen data
+├── main.py                     # Orchestrates the full pipeline end to end
+├── requirements.txt            # Project dependencies
+└── README.md
 
 ---
 

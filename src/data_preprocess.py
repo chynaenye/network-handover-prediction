@@ -29,6 +29,12 @@ def validate_ranges(df):
     return df.isna().sum().sort_values(ascending=False)
 
 
+def SINR_outliers(df):
+    df.loc[df['SINR'] == 2147483647, 'SINR'] = np.nan
+    df['SINR'] = df['SINR'].fillna(df['SINR'].median())
+    return df.isna().sum().sort_values(ascending=False)
+
+
 def handling_missing_values(df):
     #Handling missing values in these columns by dropping them because handovers cannot be predicted without location and cell information.
     df = df.dropna(subset=['Latitude', 'Longitude', 'PCI'], inplace=True)
