@@ -23,7 +23,7 @@ network-handover-prediction/
 ├── notebooks/
 │   └── exploration.ipynb       # Exploratory data analysis and model experimentation
 ├── src/
-│   ├── data_preprocess.py      # Unit stripping, type conversion, missing value handling, range validation
+│   ├── data_preprocess.py      # Unit stripping, type conversion, missing value handling, range validation, SINR_outliers
 │   ├── features.py             # Feature engineering and target variable creation
 │   ├── train.py                # Train/test split, scaling, SMOTE, model training
 │   ├── evaluate.py             # Model evaluation — confusion matrix and classification report
@@ -263,13 +263,20 @@ Sweeping thresholds from 0.2 to 0.55 on the tuned Random Forest's probability ou
 
 ---
 
-### Best Model Summary
+### Final Model Selection
 
-| Criterion | Best Model |
+After comparing Logistic Regression, Decision Tree, Random Forest, and XGBoost, **XGBoost at threshold 0.2** was selected as the final model.
+
+| Metric | Value |
 |---|---|
-| Highest Recall (catch the most handovers) | Tuned RF @ threshold ≤ 0.45 — **Recall: 1.00** |
-| Best F1 Balance | Tuned RF @ threshold 0.50 or XGBoost @ threshold 0.2–0.4 — **F1: 0.68–0.70** |
-| Most Interpretable | Decision Tree — F1: 0.55, Recall: 0.57 |
+| Precision (Handover) | 0.59 |
+| Recall (Handover) | 0.87 |
+| F1-Score (Handover) | 0.70 |
+| Accuracy | 99% |
+| Confusion Matrix | TN=2003, FP=18, FN=4, TP=26 |
+
+**Why XGBoost at threshold 0.2:**
+In a telecoms context, a missed handover means a dropped call — the worst outcome for a user. A false alarm — where the network prepares for a handover that does not happen — costs very little operationally. XGBoost at threshold 0.2 catches 87% of real handovers while keeping false alarms manageable. That tradeoff makes practical sense for network deployment. The tuned Random Forest achieved higher recall (97%) but at much lower precision (46%), meaning too many false alarms. XGBoost delivered the better overall balance.
 
 ---
 
@@ -290,8 +297,19 @@ Sweeping thresholds from 0.2 to 0.55 on the tuned Random Forest's probability ou
 - All models were trained on **StandardScaler-transformed features** for experimental consistency, including tree-based models (Random Forest, Decision Tree, XGBoost) which are scale-invariant by nature. This was a deliberate choice to keep the preprocessing pipeline uniform across all experiments.
 - The time-series split is critical — random splitting would leak future signal patterns into training and produce unrealistically optimistic metrics.
 - SMOTE is applied **after** scaling and **only to training data** to avoid synthetic samples contaminating the test evaluation.
+- Standard k-fold cross-validation was avoided to prevent temporal data leakage. Since the data is a time series, random folding would allow the model to train on future data and test on the past, producing unrealistically optimistic metrics. The chronological 80/20 split preserves the natural time ordering instead.
 
 ---
+
+## 🔭 Future Improvements
+Coming into this project, class imbalance and techniques like SMOTE were completely new territory. The process of hitting 99% accuracy on a model that predicted zero handovers, then having to figure out why and what to do about it, was one of the most valuable parts of the whole experience. Every decision made along the way, including the ones that did not work immediately led to a better understanding of the problem.
+
+A few things worth exploring further:
+
+- **Production integration** — the most pressing open question is how this model would perform deployed inside a real telecoms network. Offline evaluation on historical logs is one thing; real-time prediction on a live signal stream is another. Testing that gap would be the most meaningful next step.
+- **Real-time prediction pipeline** — extending `predict.py` to consume a live data stream rather than static input, bringing the project closer to a deployable system.
+- **Dataset quality and size** — the dataset had limitations, including a single device, a short time window, and only 317 handover events. A larger, more diverse dataset across multiple devices, network types, and geographies would give a much more reliable picture of model performance and more stable recall estimates.
+- **Per-device modeling** — this project used data from one device. A real-world system would need models that generalise across different devices, manufacturers, and network configurations.
 
 ## 🚀 Getting Started
 
